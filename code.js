@@ -2,6 +2,8 @@
 
 let length;
 let h;
+
+//функция для задания координат объекту
 function setElementPosition(element, xx, yy, zz) {
     element.position.x = xx;
     element.position.y = yy;
@@ -14,35 +16,9 @@ function createLight(scene, color, force) {
     scene.add(pointLight);
     return pointLight;
 }
-// функция для определения случайного числа
-function rnd(n) {
-    return parseInt(parseInt(Math.random() * 100000) % n);
-    }
 
-//функция, которая создаёт врага, если логическая переменная enemy=false и помещяет его в конец массива EnemyArr
-/*function createEnemy(scene){  
-    let x=rnd(4);
-    if(enemy===false){     
-    let cube = createCube(scene,3,3,3,"#FF0000");
-    if(x===0){
-        let d=setElementPosition(cube,60,3,0);
-    }
-    if(x===1){
-        let d=setElementPosition(cube,0,3,-60);
-    }
-    if(x===2){
-        let d=setElementPosition(cube,-60,3,0);
-    }
-    if(x===3){
-        let d=setElementPosition(cube,0,3,60);
-    } 
-    enemy=true;
-    EnemyArr.push(cube);
-    return cube;
-}
-}*/
-
- function createEnemy2(scene,x,z){
+//функция для создания врагов
+ function createEnemy(scene,x,z){
     let cube = createCube(scene,3,3,3,"#FF0000");
     setElementPosition(cube,x,3,z);
     EnemyArr.push(cube);
@@ -121,55 +97,27 @@ function createCylinder(scene, radius, height, segments, color) {
     return cylinder;
 }
 
-
-
-//функция для создания линий между центрами героя и объектов
-/*function createline(scene,x1,z1,x2,z2){
-    let material = new THREE.LineBasicMaterial({color: 0x0000ff });
-    let geometry = new THREE.Geometry();
-    geometry.vertices.push(new THREE.Vector3(x1, 3, z1));
-    geometry.vertices.push(new THREE.Vector3(x2, 3, z2));
-    let line = new THREE.Line(geometry, material);
-}*/
-
 //функция для контроля столкновения героя и объекта
-function controlcrash(x1,x2,z1,z2){
+function controlAllcrash(hero){
     let speedX=speedModule * Math.sin(angle);
     let speedZ=speedModule * Math.cos(angle);
-    let a = x1+speedX;
-    let b =z1+speedZ;
-    if((a+30)*(a+30)+b*b>=150){
-        v=true;
-    }  if((a+30)*(a+30)+b*b<150){
-        v=false;
+    let a = hero.position.x+speedX;
+    let b =hero.position.z+speedZ;
+    if((a+30)*(a+30)+b*b>=150 &&(a-30)*(a-30)+(b-20)*(b-20)>=150 && (a-30)*(a-30)+(b+30)*(b+30)>=150){
+        controlcrash=true;
+    }  else {
+        controlcrash=false;
     }
- 
 }
-//функция для контроля столкновения героя и объекта
-function controlcrash2(x1,x2,z1,z2){
-    let speedX=speedModule * Math.sin(angle);
-    let speedZ=speedModule * Math.cos(angle);
-    let a = x1+speedX;
-    let b =z1+speedZ;
-    if((a-30)*(a-30)+(b-20)*(b-20)>=150){
-        m=true;
-    }  if((a-30)*(a-30)+(b-20)*(b-20)<150){
-        m=false;
+
+//функция для контроля столкновений героя и врагов
+function controlCrashWithEnemy(x,z){
+    for(let i=0; i<EnemyArr.length; i++){
+        let e=EnemyArr[i];
+        if(Math.sqrt(Math.abs(x- e.position.x)*Math.abs(x- e.position.x)+Math.abs(z- e.position.z)*Math.abs(z- e.position.z))<4.5 && e.position.y>0 ){
+            controlCrashWithEnemy1=1;
+        }
     }
- 
-}
-//функция для контроля столкновения героя и объекта
-function controlcrash3(x1,x2,z1,z2){
-    let speedX=speedModule * Math.sin(angle);
-    let speedZ=speedModule * Math.cos(angle);
-    let a = x1+speedX;
-    let b =z1+speedZ;
-    if((a-30)*(a-30)+(b+30)*(b+30)>=150){
-        n=true;
-    }  if((a-30)*(a-30)+(b+30)*(b+30)<150){
-        n=false;
-    }
- 
 }
 
 // размеры холста
@@ -183,13 +131,11 @@ let s = false;
 let d = false;
 
 //счётчик попаданий по врагам;
-let U=0;
-//логические переменные для контроля столкновений героя с препятствиями
-let v=true;
-let m=true;
-let n=true;
-
-//let enemy=false;
+let counterEnemy=0;
+// переменная для контроля столкновения врагов и героев
+let controlCrashWithEnemy1=0;
+//логическая переменная для контроля столкновений героя с препятствиями
+let controlcrash=true;
 
 // переменные для работы со скоростями героя
 let angle = 0;
@@ -216,13 +162,12 @@ function controlcrashBullet(){
          let b=bulletsArr[i];
         for( let t=0;t<EnemyArr.length;t++){
             let e=EnemyArr[t];
-            if(Math.sqrt(Math.abs(b.position.x- e.position.x)*Math.abs(b.position.x- e.position.x)+Math.abs(b.position.z- e.position.z)*Math.abs(b.position.z- e.position.z))<2.5){
+            if(Math.sqrt(Math.abs(b.position.x- e.position.x)*Math.abs(b.position.x- e.position.x)+Math.abs(b.position.z- e.position.z)*Math.abs(b.position.z- e.position.z))<2.5 && b.position.y>0 && e.position.y>0){
                 e.position.y=-30;
                 e.position.x=0;
                 e.position.z=0;
                 b.position.y=-20;
-                U++;
-                //enemy=false;
+                counterEnemy++;
             }
             
         }
@@ -240,8 +185,8 @@ function moveCameraForHero(cameraElement, heroElement) {
 
 // массив с пулями
 let bulletsArr = [];
+//массив врагов
 let EnemyArr=[];
-let crash=false;
 
 // функция для движения пулек
 function moveBullets() {
@@ -304,10 +249,10 @@ window.onload = function() {
     setElementPosition(hero, 20, 3, 0);
 
     //создание врагов
-    let enemy1=createEnemy2(scene,60,0);
-    let enemy2=createEnemy2(scene,-60,0);
-    let enemy3=createEnemy2(scene,0,60);
-    let enemy4=createEnemy2(scene,0,-60);
+    let enemy1=createEnemy(scene,60,0);
+    let enemy2=createEnemy(scene,-60,0);
+    let enemy3=createEnemy(scene,0,60);
+    let enemy4=createEnemy(scene,0,-60);
 
     // при нажатии клавиши
     window.onkeydown = function(event) { 
@@ -327,11 +272,6 @@ window.onload = function() {
 
     // отображаем вид с камеры
     renderer.render(scene, camera);
-    
-    //создаём линии между центрами героя и объектов и считаем его длину
-    //let line1=createline(scene,hero.position.x,hero.position.z,-30,0);
-    //let line2=createline(scene,hero.position.x,hero.position.z,30,20);
-    //let line3=createline(scene,hero.position.x,hero.position.z,30,-30);
 
     // стрельба кубиками
     let box = document.getElementById("gameBox");
@@ -343,31 +283,28 @@ window.onload = function() {
         bullet.position.z = hero.position.z;
         bullet.rotation.y = angle;
         bulletsArr.push(bullet);
-    };
-    
-     //let cube=createEnemy(scene);
+    }
 
     // выполнение кода циклически через временные промежутки
     setInterval(function() {
-        controlcrash(hero.position.x,-30,hero.position.z,0);
-        controlcrash2(hero.position.x,30,hero.position.z,20);
-        controlcrash3(hero.position.x,30,hero.position.z,-30);
-        if(U===4){
+        //если герой коснулся врага, то поражение, иначе игра продолжается
+        if(controlCrashWithEnemy1===1){
+            score.innerHTML="вы проиграли";
+            w=false;
+            d=false;
+            a=false;
+        } else{
+            controlAllcrash(hero);
+        if(counterEnemy===4){
             score.innerHTML="Вы выиграли";
         }
-        if(v===false){w=false}
-        if(m===false){w=false}
-        if(n===false){w=false}
+        if(controlcrash===false){w=false};
         controlHero(hero);
+        controlCrashWithEnemy(hero.position.x,hero.position.z);
         MoveAllEnemy();
-        //createEnemy(scene);
         moveCameraForHero(camera, hero);
-        //createline(scene,hero.position.x,hero.position.z,-30,0);
-        //createline(scene,hero.position.x,hero.position.z,30,20);
-        //createline(scene,hero.position.x,hero.position.z,30,-30);
         moveBullets();
         controlcrashBullet();
-        //console.log(enemy);
         renderer.render(scene, camera);
-    }, 50);
+    }}, 50);
 }
